@@ -1,0 +1,79 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+        "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <title></title>
+    <script src="http://libs.useso.com/js/jquery/1.8.3/jquery.min.js"></script>
+    <script>
+        jQuery.fn.extend({
+            uploadPreview: function (opts) {
+                var _self = this,
+                        _this = $(this);
+                opts = jQuery.extend({
+                    Width: 100,
+                    Height: 100,
+                    ImgType: ["gif", "jpeg", "jpg", "bmp", "png"],
+                    Callback: function () {}
+                }, opts || {});
+                _self.getObjectURL = function (file) {
+                    var url = null;
+                    if (window.createObjectURL != undefined) {
+                        url = window.createObjectURL(file)
+                    } else if (window.URL != undefined) {
+                        url = window.URL.createObjectURL(file)
+                    } else if (window.webkitURL != undefined) {
+                        url = window.webkitURL.createObjectURL(file)
+                    }
+                    return url;
+                };
+                _this.change(function () {
+                    var img=$(this).next('img');
+                    if (_this.val()) {
+                       if (!RegExp("\.(" + opts.ImgType.join("|") + ")$", "i").test(this.value.toLowerCase())) {
+                            alert("上传文件必须是以" + opts.ImgType.join("或") + "为后缀名的文件�");
+                            this.value = "";
+                            return false;
+                        }
+                        if ($.browser.msie) {
+                            try {
+                                img.attr('src', _self.getObjectURL(this.files[0]))
+                            } catch (e) {
+                                var src = "";
+                                var obj = img;
+                                var div = obj.parent("div")[0];
+                                _self.select();
+                                if (top != self) {
+                                    window.parent.document.body.focus()
+                                } else {
+                                    _self.blur()
+                                }
+                                src = document.selection.createRange().text;
+                                document.selection.empty();
+                                obj.hide();
+                                obj.parent("div").css({
+                                    'filter': 'progid:DXImageTransform.Microsoft.AlphaImageLoader(sizingMethod=scale)',
+                                    'width': opts.Width + 'px',
+                                    'height': opts.Height + 'px'
+                                });
+                                div.filters.item("DXImageTransform.Microsoft.AlphaImageLoader").src = src
+                            }
+                        } else {
+                            img.attr('src', _self.getObjectURL(this.files[0]))
+                        }
+                        opts.Callback()
+                    }
+                })
+            }
+        });
+        $(function () {
+            $("#up").uploadPreview({ Img: "ImgPr", Width: 120, Height: 120 });
+        });
+    </script>
+</head>
+<body>
+<div style="width:500px;margin:0px auto;"><h2>上传图片</h2>
+    <div><img id="ImgPr" width="120" height="120" /></div>
+    <input type="file" id="up"/>
+</div>
+</body>
+</html>
